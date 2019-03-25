@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 	"image"
 	"math"
 	"math/rand"
@@ -56,8 +55,6 @@ func (w *World) Setup() {
 	win.SetTitle(fmt.Sprintf("%s | %v/%v | FPS %d", cfg.Title, 50, 50, frames))
 
 	for !win.Closed() {
-		win.Clear(colornames.Black)
-
 		dt := time.Since(clock).Seconds()
 		clock = time.Now()
 
@@ -177,20 +174,58 @@ func (w *World) ratio(dt float64) {
 }
 
 func (w *World) draw(dt float64) {
-	m := image.NewRGBA(image.Rect(0, 0, w.Size, w.Size))
+	b := image.NewRGBA(image.Rect(0, 0, w.Size, w.Size))
+	f := image.NewRGBA(image.Rect(0, 0, w.Size, w.Size))
 
-	for i := 0; i < w.Size; i++ {
-		for j := 0; j < w.Size; j++ {
+	var (
+		cR, cG, cB float64
+		count      int
+	)
+
+	count = 0
+
+	for x := 0; x < w.Size; x++ {
+		for y := 0; y < w.Size; y++ {
 			c := w.Colour1
-			if w.Old[i][j] == 1 {
+			if w.Old[x][y] == 1 {
 				c = w.Colour2
 			}
-			m.Set(i, j, c)
+			f.Set(x, y, c)
+
+			cR += c.R
+			cG += c.G
+			cB += c.B
+			count++
 		}
 	}
 
-	p := pixel.PictureDataFromImage(m)
-	pixel.NewSprite(p, p.Bounds()).Draw(w.Window, pixel.IM.ScaledXY(pixel.ZV, pixel.V(-3.8, 3.8)).Moved(w.Window.Bounds().Center())) // 4.0 is 500 / 125
+	cR = cR / float64(count)
+	cG = cG / float64(count)
+	cB = cB / float64(count)
+
+	if cR > 255 {
+		cR = 255
+	}
+
+	if cG > 255 {
+		cG = 255
+	}
+
+	if cB > 255 {
+		cB = 255
+	}
+
+	for x := 0; x < w.Size; x++ {
+		for y := 0; y < w.Size; y++ {
+			b.Set(x, y, pixel.RGBA{cR, cG, cB, 1})
+		}
+	}
+
+	pB := pixel.PictureDataFromImage(b)
+	pixel.NewSprite(pB, pB.Bounds()).Draw(w.Window, pixel.IM.ScaledXY(pixel.ZV, pixel.V(-4.0, 4.0)).Moved(w.Window.Bounds().Center()))
+
+	pF := pixel.PictureDataFromImage(f)
+	pixel.NewSprite(pF, pF.Bounds()).Draw(w.Window, pixel.IM.ScaledXY(pixel.ZV, pixel.V(-3.8, 3.8)).Moved(w.Window.Bounds().Center())) // 4.0 is 500 / 125
 }
 
 func (w *World) calc(dt float64) {
