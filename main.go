@@ -190,7 +190,7 @@ func (w *World) draw(dt float64) {
 	}
 
 	p := pixel.PictureDataFromImage(m)
-	pixel.NewSprite(p, p.Bounds()).Draw(w.Window, pixel.IM.ScaledXY(pixel.ZV, pixel.V(-4.0*2, 4.0*2))) // 4.0 is 500 / 125
+	pixel.NewSprite(p, p.Bounds()).Draw(w.Window, pixel.IM.ScaledXY(pixel.ZV, pixel.V(-3.8, 3.8)).Moved(w.Window.Bounds().Center())) // 4.0 is 500 / 125
 }
 
 func (w *World) calc(dt float64) {
